@@ -3,6 +3,8 @@ import math
 import operator
 import random
 
+from numpy import Infinity
+
 
 class Countdown:
     """
@@ -41,6 +43,8 @@ class Solver:
         if not game.target or not game.numbers:
             raise GameInitisationError(f"Game missing target and/or numbers")
         self.game = game
+        self.solved = False
+        self.solutions = set()
 
     def brute_force(self):
         sequences = list(itertools.permutations(self.game.numbers))
@@ -51,12 +55,43 @@ class Solver:
 
         for i, (seq, ops) in enumerate(array):
             for step in range(len(seq)):
+                if (seq[step] == 1 and ops[step] in [operator.mul, operator.floordiv]):
+                    results[i] = -Infinity
+                    break
                 results[i] = ops[step](results[i], seq[step])
+                if (results[i] == self.game.target):
+                    self.solved = True
+                    break
 
+        calculations = []
         for i, result in enumerate(results):
             if result == self.game.target:
-                print(f"Sequence: {array[i][0]}")
-                print(f"Operations: {array[i][1]}")        
+                s = ""
+                for i, (num, op) in enumerate(zip(array[i][0], array[i][1])):
+                    if (i == 0):
+                        s += f"{num} "
+                        calculation = num
+                    else:
+                        s += f"{self.op_to_string(op)} {num} "
+                        calculation = op(calculation, num)
+                    if calculation == self.game.target:
+                        s += f"= {self.game.target}"
+                        calculations.append(s)
+                        break
+        
+        self.solutions = set(calculations)
+                
+    def op_to_string(self, op):
+        if op == operator.add:
+            return "+"
+        elif op == operator.sub:
+            return "-"
+        elif op == operator.mul:
+            return "*"
+        elif op == operator.floordiv:
+            return "/"
+        else:
+            return "?"
 
 class GameInitisationError(Exception):
     def __init__(self, message):
