@@ -2,6 +2,7 @@ import itertools
 import math
 import operator
 import random
+from typing import List
 
 from numpy import Infinity
 
@@ -27,11 +28,11 @@ class Countdown:
         return cls.random_target(large_numbers + small_numbers)
     
     @staticmethod
-    def _large_numbers() -> int:
+    def _large_numbers() -> List[int]:
         return [25, 50, 75, 100]
     
     @staticmethod
-    def _small_numbers() -> int:
+    def _small_numbers() -> List[int]:
         return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     
     def __repr__(self):
@@ -74,6 +75,7 @@ class Solver:
                     else:
                         s += f"{self.op_to_string(op)} {num} "
                         calculation = op(calculation, num)
+                    
                     if calculation == self.game.target:
                         s += f"= {self.game.target}"
                         calculations.append(s)
@@ -81,7 +83,7 @@ class Solver:
         
         self.solutions = set(calculations)
                 
-    def op_to_string(self, op):
+    def op_to_string(self, op) -> str:
         if op == operator.add:
             return "+"
         elif op == operator.sub:
@@ -92,6 +94,9 @@ class Solver:
             return "/"
         else:
             return "?"
+        
+    def __repr__(self):
+        [print(solution) for solution in self.solutions]
 
 class GameInitisationError(Exception):
     def __init__(self, message):
