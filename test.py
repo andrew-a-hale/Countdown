@@ -45,7 +45,7 @@ class TestSolverSpecifiedGame:
         solver.set_strategy(countdown.BruteForceSolver)
         solver.solve()
         assert solver
-        assert len(solver.solutions) == 6
+        assert len(solver.solutions) == 13
 
     def test_a_better_solve(self):
         cd = countdown.Countdown()

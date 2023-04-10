@@ -3,12 +3,14 @@ import countdown
 
 
 def main():
+    t1 = time.perf_counter()
     cd = countdown.Countdown()
     cd.set_random_numbers().set_random_target()
     print(cd)
     solver = countdown.Solver(cd)
     solver.set_strategy(countdown.BruteForceSolver).solve()
     print(solver)
+    print(f"calculate took {time.perf_counter() - t1} seconds")
 
 
 def simulation():

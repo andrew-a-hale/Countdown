@@ -1,8 +1,7 @@
 import itertools
 import operator
 import random
-
-import numpy as np
+import time
 
 
 class Countdown:
@@ -11,9 +10,9 @@ class Countdown:
     large_numbers = [25, 50, 75, 100]
     small_numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
-    def __init__(self, target=None, numbers=None):
-        self.target = target
-        self.numbers = numbers
+    def __init__(self):
+        self.target = None
+        self.numbers = None
 
     def set_target(self, target):
         self.target = target
@@ -43,11 +42,11 @@ class Countdown:
 class Solver:
 
     def __init__(self, game):
-        if not game.target or len(game.numbers) != game.max_numbers:
+        if not game.target or not game.numbers:
             raise GameInitisationError(f"Game missing target and/or numbers")
         self.game = game
         self.solved = False
-        self.solutions = set()
+        self.solutions = None
         self.strategy = None
 
     def set_strategy(self, strategy):
@@ -69,47 +68,44 @@ class BruteForceSolver(Solver):
         super().__init__(game)
 
     def solve(self):
-        sequences = list(itertools.permutations(self.game.numbers))
+        sequences = itertools.permutations(self.game.numbers)
         operations = [
             operator.add, operator.sub, operator.mul, operator.floordiv
         ]
-        ops_set = [
-            [operator.add] + list(x)
-            for x in itertools.combinations_with_replacement(operations, 5)
-        ]
-        array = list(itertools.product(sequences, ops_set))
-        results = [0 for _ in range(len(array))]
+        ops_set = itertools.product(operations, repeat=5)
+        array = itertools.product(sequences, ops_set)
 
-        for i, (seq, ops) in enumerate(array):
-            for step in range(len(seq)):
-                if (seq[step] == 1
-                        and ops[step] in [operator.mul, operator.floordiv]):
-                    results[i] = -np.Infinity
+        solutions = []
+        for nums, ops in array:
+            tmp = nums[0]
+            for num, op in zip(nums[1:], ops):
+                if (num == 1 and op in [operator.mul, operator.floordiv]):
                     break
-                results[i] = ops[step](results[i], seq[step])
-                if (results[i] == self.game.target):
-                    self.solved = True
+                if (op == operator.floordiv and tmp % num != 0):
+                    break
+                tmp = op(tmp, num)
+                if (tmp == self.game.target):
+                    solutions.append((nums, ops))
                     break
 
-        calculations = []
-        for i, result in enumerate(results):
-            if result == self.game.target:
-                s = ""
-                for i, (num, op) in enumerate(zip(array[i][0], array[i][1])):
-                    if (i == 0):
-                        s += f"{num} "
-                        calculation = num
-                    else:
-                        s += f"{self._op_to_string(op)} {num} "
-                        calculation = op(calculation, num)
+        soln_strings = []
+        for nums, ops in solutions:
+            tmp = nums[0]
+            tmp_str = f"{tmp} "
+            for num, op in zip(nums[1:], ops):
+                s += f"{self._op_to_string(op)} {num} "
+                tmp = op(tmp, num)
 
-                    if calculation == self.game.target:
-                        s += f"= {self.game.target}"
-                        calculations.append(s)
-                        break
+                if tmp == self.game.target:
+                    s += f"= {self.game.target}"
+                    soln_strings.append(tmp_str)
+                    break
 
-        self.solutions = set(calculations)
-        return (self.solved, self.solutions)
+        if len(solutions) > 0:
+            self.solved = True
+            self.solutions = set(soln_strings)
+
+        return self.solved, self.solutions
 
     def _op_to_string(self, op) -> str:
         if op == operator.add:
