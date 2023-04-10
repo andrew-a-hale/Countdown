@@ -1,57 +1,89 @@
 import itertools
-import math
 import operator
 import random
-from typing import List
 
 from numpy import Infinity
 
 
 class Countdown:
-    """
-    Initialise a countdown game with a target and 6 numbers
-    """
-    _max_numbers = 6
-    _large_numbers = [25, 50, 75, 100]
-    _small_numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    
+    """Countdown Builder"""
+    __max_numbers = 6
+    __large_numbers = [25, 50, 75, 100]
+    __small_numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
     def __init__(self, target=None, numbers=None):
         self.target = target
         self.numbers = numbers
 
-    @classmethod
-    def random_target(cls, numbers):
-        target = random.randint(100, 999)
-        return cls(target, numbers)
-    
-    @classmethod
-    def random_game(cls):
+    def set_target(self, target):
+        self.target = target
+        return self
+
+    def set_numbers(self, numbers):
+        self.numbers = numbers
+        return self
+
+    def set_random_target(self):
+        self.target = random.randint(100, 999)
+        return self
+
+    def set_random_numbers(self):
         number_of_large_numbers = random.randint(0, 4)
-        large_numbers = random.sample(cls._large_numbers, number_of_large_numbers)
-        small_numbers = random.sample(cls._small_numbers, cls._max_numbers - number_of_large_numbers)
-        return cls.random_target(large_numbers + small_numbers)
-    
+        large_numbers = random.sample(self.__large_numbers,
+                                      number_of_large_numbers)
+        small_numbers = random.sample(
+            self.__small_numbers, self.__max_numbers - number_of_large_numbers)
+        self.numbers = large_numbers + small_numbers
+        return self
+
     def __str__(self):
         return f"Target: {self.target}\nNumbers: {self.numbers}"
 
+
 class Solver:
+
     def __init__(self, game):
         if not game.target or not game.numbers:
             raise GameInitisationError(f"Game missing target and/or numbers")
         self.game = game
         self.solved = False
         self.solutions = set()
+        self.strategy = None
 
-    def brute_force(self):
+    def set_strategy(self, strategy):
+        self.strategy = strategy(self.game)
+        return self
+
+    def solve(self):
+        if not self.solved:
+            self.solved, self.solutions = self.strategy.solve()
+        return self
+
+    def __str__(self):
+        return "\n".join([solution for solution in self.solutions])
+
+
+class BruteForceSolver(Solver):
+
+    def __init__(self, game):
+        super().__init__(game)
+
+    def solve(self):
         sequences = list(itertools.permutations(self.game.numbers))
-        operations = [operator.add, operator.sub, operator.mul, operator.floordiv]
-        ops_set = [[operator.add] + list(x) for x in itertools.combinations_with_replacement(operations, 5)]
+        operations = [
+            operator.add, operator.sub, operator.mul, operator.floordiv
+        ]
+        ops_set = [
+            [operator.add] + list(x)
+            for x in itertools.combinations_with_replacement(operations, 5)
+        ]
         array = list(itertools.product(sequences, ops_set))
         results = [0 for _ in range(len(array))]
 
         for i, (seq, ops) in enumerate(array):
             for step in range(len(seq)):
-                if (seq[step] == 1 and ops[step] in [operator.mul, operator.floordiv]):
+                if (seq[step] == 1
+                        and ops[step] in [operator.mul, operator.floordiv]):
                     results[i] = -Infinity
                     break
                 results[i] = ops[step](results[i], seq[step])
@@ -70,14 +102,15 @@ class Solver:
                     else:
                         s += f"{self._op_to_string(op)} {num} "
                         calculation = op(calculation, num)
-                    
+
                     if calculation == self.game.target:
                         s += f"= {self.game.target}"
                         calculations.append(s)
                         break
-        
+
         self.solutions = set(calculations)
-                
+        return (self.solved, self.solutions)
+
     def _op_to_string(self, op) -> str:
         if op == operator.add:
             return "+"
@@ -89,11 +122,19 @@ class Solver:
             return "/"
         else:
             return "?"
-        
-    def __str__(self):
-        return "\n".join([solution for solution in self.solutions])
+
+
+class ABetterSolver(Solver):
+
+    def __init__(self, game):
+        super().__init__(game)
+
+    def solve(self):
+        raise NotImplementedError("Not implemented yet")
+
 
 class GameInitisationError(Exception):
+
     def __init__(self, message):
         self.message = message
         super().__init__(message)

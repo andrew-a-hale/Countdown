@@ -3,10 +3,10 @@ import countdown
 
 def main():
     cd = countdown.Countdown()
-    game = cd.random_game()
-    print(game)
-    solver = countdown.Solver(game)
-    solver.brute_force()
+    cd.set_random_numbers().set_random_target()
+    print(cd)
+    solver = countdown.Solver(cd)
+    solver.set_strategy(countdown.BruteForceSolver).solve()
     print(solver)
 
 
@@ -17,15 +17,14 @@ def simulation():
 
     for _ in range(N):
         n += monte_carlo(cd)
-    print(
-        f"{n} out of {N} games solved"
-    )
+    print(f"{n} out of {N} games solved")
 
 
 def monte_carlo(cd):
     game = cd.random_game()
     solver = countdown.Solver(game)
-    solver.brute_force()
+    solver.set_strategy(countdown.BruteForceSolver)
+    solver.solve()
     return solver.solved
 
 

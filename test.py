@@ -3,43 +3,73 @@ from . import countdown
 
 
 class TestCountdown:
-    cd = countdown.Countdown()
-    random_game = cd.random_game()
-    random_target = cd.random_target(numbers=[25, 50, 100, 5, 3, 1])
-    game = countdown.Countdown(target=920, numbers=[25, 50, 100, 5, 3, 1])
-
     def test_random_game(self):
-        assert self.random_game.target and self.random_game.numbers
+        cd = countdown.Countdown()
+        cd.set_random_target().set_random_numbers()
+        assert cd.target and cd.numbers
 
     def test_random_target(self):
-        assert self.random_target.target and self.random_target.numbers == [
+        cd = countdown.Countdown()
+        cd.set_random_target().set_numbers([25, 50, 100, 5, 3, 1])
+        assert cd.target and cd.numbers == [
             25, 50, 100, 5, 3, 1
         ]
 
     def test_game(self):
-        assert self.game.target == 920 and self.game.numbers == [
+        cd = countdown.Countdown()
+        cd.set_target(920).set_numbers([25, 50, 100, 5, 3, 1])
+        assert cd.target == 920 and cd.numbers == [
             25, 50, 100, 5, 3, 1
         ]
 
 
-class TestSolver:
-    game = countdown.Countdown(target=920, numbers=[25, 50, 100, 5, 3, 1])
-    solver = countdown.Solver(game)
-
+class TestSolverSpecifiedGame:
     def test_game_with_no_target(self):
-        game_with_no_target = countdown.Countdown(
-            numbers=[25, 50, 100, 5, 3, 1])
+        cd = countdown.Countdown()
+        cd.set_numbers([25, 50, 100, 5, 3, 1])
         with pytest.raises(countdown.GameInitisationError) as e:
-            countdown.Solver(game_with_no_target)
+            countdown.Solver(cd)
         assert str(e.value) == "Game missing target and/or numbers"
 
     def test_game_with_no_numbers(self):
-        game_with_no_numbers = countdown.Countdown(target=920)
+        cd = countdown.Countdown()
+        cd.set_target(920)
         with pytest.raises(countdown.GameInitisationError) as e:
-            countdown.Solver(game_with_no_numbers)
+            countdown.Solver(cd)
         assert str(e.value) == "Game missing target and/or numbers"
 
     def test_brute_force(self):
-        self.solver.brute_force()
-        assert self.solver
-        assert len(self.solver.solutions) == 6
+        cd = countdown.Countdown()
+        cd.set_numbers([25, 50, 100, 5, 3, 1]).set_target(920)
+        solver = countdown.Solver(cd)
+        solver.set_strategy(countdown.BruteForceSolver)
+        solver.solve()
+        assert solver
+        assert len(solver.solutions) == 6
+
+    def test_a_better_solve(self):
+        cd = countdown.Countdown()
+        cd.set_numbers([25, 50, 100, 5, 3, 1]).set_target(920)
+        solver = countdown.Solver(cd)
+        solver.set_strategy(countdown.ABetterSolver)
+        with pytest.raises(NotImplementedError) as e:
+            solver.solve()
+        assert str(e.value) == "Not implemented yet"
+
+
+class TestSolverRandomGame:
+    cd = countdown.Countdown()
+    cd.set_random_target().set_random_numbers()
+
+    def test_brute_force(self):
+        solver = countdown.Solver(self.cd)
+        solver.set_strategy(countdown.BruteForceSolver)
+        solver.solve()
+        assert solver
+
+    def test_a_better_solve(self):
+        solver = countdown.Solver(self.cd)
+        solver.set_strategy(countdown.ABetterSolver)
+        with pytest.raises(NotImplementedError) as e:
+            solver.solve()
+        assert str(e.value) == "Not implemented yet"
