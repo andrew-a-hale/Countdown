@@ -2,14 +2,14 @@ import itertools
 import operator
 import random
 
-from numpy import Infinity
+import numpy as np
 
 
 class Countdown:
     """Countdown Builder"""
-    __max_numbers = 6
-    __large_numbers = [25, 50, 75, 100]
-    __small_numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    max_numbers = 6
+    large_numbers = [25, 50, 75, 100]
+    small_numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
     def __init__(self, target=None, numbers=None):
         self.target = target
@@ -29,10 +29,10 @@ class Countdown:
 
     def set_random_numbers(self):
         number_of_large_numbers = random.randint(0, 4)
-        large_numbers = random.sample(self.__large_numbers,
+        large_numbers = random.sample(self.large_numbers,
                                       number_of_large_numbers)
         small_numbers = random.sample(
-            self.__small_numbers, self.__max_numbers - number_of_large_numbers)
+            self.small_numbers, self.max_numbers - number_of_large_numbers)
         self.numbers = large_numbers + small_numbers
         return self
 
@@ -43,7 +43,7 @@ class Countdown:
 class Solver:
 
     def __init__(self, game):
-        if not game.target or not game.numbers:
+        if not game.target or len(game.numbers) != game.max_numbers:
             raise GameInitisationError(f"Game missing target and/or numbers")
         self.game = game
         self.solved = False
@@ -84,7 +84,7 @@ class BruteForceSolver(Solver):
             for step in range(len(seq)):
                 if (seq[step] == 1
                         and ops[step] in [operator.mul, operator.floordiv]):
-                    results[i] = -Infinity
+                    results[i] = -np.Infinity
                     break
                 results[i] = ops[step](results[i], seq[step])
                 if (results[i] == self.game.target):
