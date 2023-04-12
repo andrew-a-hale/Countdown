@@ -146,9 +146,9 @@ class RecursiveSolver:
                     if op == operator.floordiv and (x % y != 0):
                         continue
                     new_num = op(x, y)
+                    new_ops = ops + [x, op, y]
                     if (new_num <= 0):
                         continue
-                    new_ops = ops + [x, op, y]
                     if new_num == target:
                         solutions.append(new_ops)
                         continue
@@ -164,9 +164,12 @@ class RecursiveSolver:
         for solution in solutions:
             tmp_str = ""
             for i in range(0, len(solution), 3):
-                value = solution[i + 1](solution[i], solution[i + 2])
+                x, y = solution[i], solution[i + 2]
+                if x < y:
+                    x, y = y, x
+                value = solution[i + 1](x, y)
                 op = _op_to_str(solution[i + 1])
-                tmp_str += f"{solution[i]} {op} {solution[i+2]} = {value}\n"
+                tmp_str += f"{x} {op} {y} = {value}\n"
             soln_strs.append(tmp_str)
 
         if len(soln_strs) > 0:
