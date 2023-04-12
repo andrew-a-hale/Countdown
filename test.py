@@ -38,24 +38,37 @@ class TestSolverSpecifiedGame:
             countdown.Solver(cd)
         assert str(e.value) == "Game missing target and/or numbers"
 
-    def test_brute_force(self):
+    def test_brute_force_1(self):
         cd = countdown.Countdown()
         cd.set_numbers([25, 50, 100, 5, 3, 1]).set_target(920)
         solver = countdown.Solver(cd)
-        solver.set_strategy(countdown.BruteForceSolver)
-        solver.solve()
+        solver.set_strategy(countdown.BruteForceSolver).solve()
         assert solver
-        assert len(solver.solutions) == 13
+        assert solver.solution_count == 13
 
-    def test_a_better_solve(self):
+    def test_recursive_1(self):
         cd = countdown.Countdown()
         cd.set_numbers([25, 50, 100, 5, 3, 1]).set_target(920)
         solver = countdown.Solver(cd)
-        solver.set_strategy(countdown.ABetterSolver)
-        with pytest.raises(NotImplementedError) as e:
-            solver.solve()
-        assert str(e.value) == "Not implemented yet"
+        solver.set_strategy(countdown.RecursiveSolver).solve()
+        assert solver
+        assert solver.solution_count == 89
+        
+    def test_brute_force_2(self):
+        cd = countdown.Countdown()
+        cd.set_numbers([2, 10, 1, 3, 10, 8]).set_target(589)
+        solver = countdown.Solver(cd)
+        solver.set_strategy(countdown.BruteForceSolver).solve()
+        assert solver
+        assert solver.solution_count == 3
 
+    def test_recursive_2(self):
+        cd = countdown.Countdown()
+        cd.set_numbers([2, 10, 1, 3, 10, 8]).set_target(589)
+        solver = countdown.Solver(cd)
+        solver.set_strategy(countdown.RecursiveSolver).solve()
+        assert solver
+        assert solver.solution_count > 1
 
 class TestSolverRandomGame:
     cd = countdown.Countdown()
@@ -63,13 +76,10 @@ class TestSolverRandomGame:
 
     def test_brute_force(self):
         solver = countdown.Solver(self.cd)
-        solver.set_strategy(countdown.BruteForceSolver)
-        solver.solve()
+        solver.set_strategy(countdown.BruteForceSolver).solve()
         assert solver
 
-    def test_a_better_solve(self):
+    def test_a_recursive_solve(self):
         solver = countdown.Solver(self.cd)
-        solver.set_strategy(countdown.ABetterSolver)
-        with pytest.raises(NotImplementedError) as e:
-            solver.solve()
-        assert str(e.value) == "Not implemented yet"
+        solver.set_strategy(countdown.RecursiveSolver).solve()
+        assert solver

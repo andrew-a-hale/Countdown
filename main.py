@@ -1,16 +1,17 @@
+import sys
 import time
 import countdown
 
 
 def main():
-    t1 = time.perf_counter()
+    sys.setrecursionlimit(10000)
     cd = countdown.Countdown()
-    cd.set_random_numbers().set_random_target()
+    # cd.set_random_numbers().set_random_target()
+    cd.set_numbers([2, 10, 1, 3, 10, 8]).set_target(589)
     print(cd)
     solver = countdown.Solver(cd)
-    solver.set_strategy(countdown.BruteForceSolver).solve()
+    solver.set_strategy(countdown.RecursiveSolver).solve()
     print(solver)
-    print(f"calculate took {time.perf_counter() - t1} seconds")
 
 
 def simulation():
@@ -36,4 +37,4 @@ def monte_carlo(cd):
 
 
 if __name__ == "__main__":
-    simulation()
+    main()
