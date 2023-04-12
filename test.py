@@ -52,7 +52,7 @@ class TestSolverSpecifiedGame:
         solver = countdown.Solver(cd)
         solver.set_strategy(countdown.RecursiveSolver).solve()
         assert solver
-        assert solver.solution_count == 89
+        assert solver.solution_count == 1078
         
     def test_brute_force_2(self):
         cd = countdown.Countdown()
@@ -68,7 +68,7 @@ class TestSolverSpecifiedGame:
         solver = countdown.Solver(cd)
         solver.set_strategy(countdown.RecursiveSolver).solve()
         assert solver
-        assert solver.solution_count > 1
+        assert solver.solution_count == 12
 
 class TestSolverRandomGame:
     cd = countdown.Countdown()

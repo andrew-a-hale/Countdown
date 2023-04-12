@@ -48,6 +48,7 @@ class Solver:
         if not game.target or not game.numbers:
             raise GameInitisationError(f"Game missing target and/or numbers")
         self.game = game
+        self.iterations = 0
         self.solved = False
         self.solutions = None
         self.solution_count = None
@@ -61,7 +62,8 @@ class Solver:
     def solve(self):
         if not self.solved:
             t1 = time.perf_counter()
-            self.solved, self.solutions = self.strategy.solve()
+            self.solved, self.solutions, self.iterations = self.strategy.solve(
+            )
             self.duration = time.perf_counter() - t1
         if self.solved:
             self.solution_count = len(self.solutions)
@@ -74,6 +76,7 @@ class Solver:
             string = "\n".join([solution for solution in self.solutions])
             string += f"\nSolution count: {self.solution_count}"
             string += f"\nSolver duration: {self.duration} seconds"
+        string += f"\nIterations: {self.iterations}"
         return string
 
 
@@ -81,6 +84,7 @@ class BruteForceSolver:
 
     def __init__(self, game):
         self.game = game
+        self.iterations = 0
 
     def solve(self):
         sequences = itertools.permutations(self.game.numbers)
@@ -89,23 +93,23 @@ class BruteForceSolver:
 
         solutions = []
         for nums, ops in array:
+            self.iterations += 1
             tmp = nums[0]
             for num, op in zip(nums[1:], ops):
-                if (num == 1 and op in [operator.mul, operator.floordiv]):
-                    break
-                if (op == operator.floordiv and tmp % num != 0):
-                    break
-                tmp = op(tmp, num)
-                if (tmp == self.game.target):
-                    solutions.append((nums, ops))
-                    break
+                try:
+                    tmp = op(tmp, num)
+                    if tmp == self.game.target:
+                        solutions.append((nums, ops))
+                        break
+                except ZeroDivisionError:
+                    pass
 
         soln_strings = []
         for nums, ops in solutions:
             tmp = nums[0]
             tmp_str = f"{tmp} "
             for num, op in zip(nums[1:], ops):
-                tmp_str += f"{_op_to_string(op)} {num} "
+                tmp_str += f"{_op_to_str(op)} {num} "
                 tmp = op(tmp, num)
 
                 if tmp == self.game.target:
@@ -114,14 +118,15 @@ class BruteForceSolver:
                     break
 
         if len(soln_strings) > 0:
-            return (True, set(soln_strings))
-        return False, None
+            return (True, set(soln_strings), self.iterations)
+        return False, None, self.iterations
 
 
 class RecursiveSolver:
 
     def __init__(self, game):
         self.game = game
+        self.iterations = 0
 
     def solve(self):
         target = self.game.target
@@ -132,43 +137,41 @@ class RecursiveSolver:
         def _solve(nums, ops):
             if len(nums) == 1:
                 return None
-            pairs = itertools.combinations(nums, 2)
+            pairs = set(itertools.permutations(nums, 2))
             for x, y in pairs:
                 for op in operations:
-                    if (x == 1 or y == 1) and op in [operator.mul, operator.floordiv]:
+                    self.iterations += 1
+                    if op in [operator.mul, operator.floordiv] and (x == 1 or y == 1):
                         continue
-                    if op == operator.floordiv and x % y != 0:
+                    if op == operator.floordiv and (x % y != 0):
                         continue
                     new_num = op(x, y)
-                    new_ops = ops + [x, op, y]
-                    if new_num == 0:
+                    if (new_num <= 0):
                         continue
+                    new_ops = ops + [x, op, y]
                     if new_num == target:
                         solutions.append(new_ops)
-                        return None
-                    new_nums = [new_num] + [n for n in nums if n not in [x, y]]
-                    # new_nums = copy.deepcopy(nums)
-                    # new_nums.append(new_num)
-                    # new_nums.remove(x)
-                    # new_nums.remove(y)
-                    # print(new_nums, [x, op, y])
-                    # time.sleep(1)
+                        continue
+                    new_nums = nums.copy()
+                    new_nums.append(new_num)
+                    new_nums.remove(x)
+                    new_nums.remove(y)
                     _solve(new_nums, new_ops)
 
         _solve(nums, [])
 
-        soln_strings = []
+        soln_strs = []
         for solution in solutions:
             tmp_str = ""
             for i in range(0, len(solution), 3):
                 value = solution[i + 1](solution[i], solution[i + 2])
-                op = _op_to_string(solution[i + 1])
+                op = _op_to_str(solution[i + 1])
                 tmp_str += f"{solution[i]} {op} {solution[i+2]} = {value}\n"
-            soln_strings.append(tmp_str)
+            soln_strs.append(tmp_str)
 
-        if len(soln_strings) > 0:
-            return (True, set(soln_strings))
-        return False, None
+        if len(soln_strs) > 0:
+            return (True, set(soln_strs), self.iterations)
+        return False, None, self.iterations
 
 
 class GameInitisationError(Exception):
@@ -178,10 +181,10 @@ class GameInitisationError(Exception):
         super().__init__(message)
 
 
-operations = [operator.add, operator.sub, operator.mul, operator.floordiv]
+operations = (operator.add, operator.sub, operator.mul, operator.floordiv)
 
 
-def _op_to_string(op) -> str:
+def _op_to_str(op) -> str:
     if op == operator.add:
         return "+"
     elif op == operator.sub:

@@ -1,18 +1,20 @@
-import sys
+import cProfile
 import time
 import countdown
 
 
 def main():
-    sys.setrecursionlimit(10000)
     cd = countdown.Countdown()
-    # cd.set_random_numbers().set_random_target()
-    cd.set_numbers([2, 10, 1, 3, 10, 8]).set_target(589)
+    cd.set_random_numbers().set_random_target()
+    # cd.set_numbers([25, 50, 100, 5, 3, 1]).set_target(920)
+    # cd.set_numbers([2, 10, 1, 3, 10, 8]).set_target(589)
     print(cd)
     solver = countdown.Solver(cd)
     solver.set_strategy(countdown.RecursiveSolver).solve()
     print(solver)
 
+def main_with_profiling():
+    cProfile.run('main()') 
 
 def simulation():
     n = 0
@@ -37,4 +39,5 @@ def monte_carlo(cd):
 
 
 if __name__ == "__main__":
+    # main_with_profiling()
     main()
