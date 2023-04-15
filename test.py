@@ -11,16 +11,12 @@ class TestCountdown:
     def test_random_target(self):
         cd = countdown.Countdown()
         cd.set_random_target().set_numbers([25, 50, 100, 5, 3, 1])
-        assert cd.target and cd.numbers == [
-            25, 50, 100, 5, 3, 1
-        ]
+        assert cd.target and cd.numbers == [25, 50, 100, 5, 3, 1]
 
     def test_game(self):
         cd = countdown.Countdown()
         cd.set_target(920).set_numbers([25, 50, 100, 5, 3, 1])
-        assert cd.target == 920 and cd.numbers == [
-            25, 50, 100, 5, 3, 1
-        ]
+        assert cd.target == 920 and cd.numbers == [25, 50, 100, 5, 3, 1]
 
 
 class TestSolverSpecifiedGame:
@@ -53,7 +49,7 @@ class TestSolverSpecifiedGame:
         solver.set_strategy(countdown.RecursiveStrategy).solve()
         assert solver
         assert solver.solution_count == 234
-        
+
     def test_brute_force_2(self):
         cd = countdown.Countdown()
         cd.set_numbers([2, 10, 1, 3, 10, 8]).set_target(589)
@@ -69,6 +65,7 @@ class TestSolverSpecifiedGame:
         solver.set_strategy(countdown.RecursiveStrategy).solve()
         assert solver
         assert solver.solution_count == 2
+
 
 class TestSolverRandomGame:
     cd = countdown.Countdown()

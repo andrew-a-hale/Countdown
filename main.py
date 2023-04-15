@@ -13,8 +13,10 @@ def main():
     solver.set_strategy(countdown.RecursiveStrategy).solve()
     print(solver)
 
+
 def main_with_profiling():
-    cProfile.run('main()') 
+    cProfile.run("main()")
+
 
 def simulation():
     n = 0

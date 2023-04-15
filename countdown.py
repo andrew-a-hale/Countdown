@@ -7,11 +7,10 @@ import time
 
 class Countdown:
     """Countdown Builder"""
+
     max_numbers = 6
     large_numbers = [25, 50, 75, 100]
-    small_numbers = [
-        1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10
-    ]
+    small_numbers = [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10]
 
     def __init__(self):
         self.target = None
@@ -31,10 +30,10 @@ class Countdown:
 
     def set_random_numbers(self):
         number_of_large_numbers = random.randint(0, 4)
-        large_numbers = random.sample(self.large_numbers,
-                                      number_of_large_numbers)
+        large_numbers = random.sample(self.large_numbers, number_of_large_numbers)
         small_numbers = random.sample(
-            self.small_numbers, self.max_numbers - number_of_large_numbers)
+            self.small_numbers, self.max_numbers - number_of_large_numbers
+        )
         self.numbers = large_numbers + small_numbers
         return self
 
@@ -43,13 +42,11 @@ class Countdown:
 
 
 class Strategy(ABC):
-
     def solve(self) -> tuple[bool, list[str], int]:
         """Solve method for strategy"""
 
 
 class BruteForceStrategy(Strategy):
-
     def __init__(self, game: Countdown):
         self.game = game
         self.iterations = 0
@@ -64,13 +61,14 @@ class BruteForceStrategy(Strategy):
             self.iterations += 1
             tmp = nums[0]
             for num, op in zip(nums[1:], ops):
-                try:
-                    tmp = op(tmp, num)
-                    if tmp == self.game.target:
-                        solutions.append((nums, ops))
-                        break
-                except ZeroDivisionError:
-                    pass
+                if op in [operator.mul, operator.floordiv] and (tmp == 1 or num == 1):
+                    break
+                if op == operator.floordiv and (tmp % num != 0):
+                    break
+                tmp = op(tmp, num)
+                if tmp == self.game.target:
+                    solutions.append((nums, ops))
+                    break
 
         soln_strings = []
         for nums, ops in solutions:
@@ -91,7 +89,6 @@ class BruteForceStrategy(Strategy):
 
 
 class RecursiveStrategy(Strategy):
-
     def __init__(self, game: Countdown):
         self.game = game
         self.iterations = 0
@@ -115,7 +112,7 @@ class RecursiveStrategy(Strategy):
                         continue
                     new_num = op(x, y)
                     new_ops = ops + [x, op, y]
-                    if (new_num <= 0):
+                    if new_num <= 0:
                         continue
                     if new_num == target:
                         solutions.append(new_ops)
@@ -146,7 +143,6 @@ class RecursiveStrategy(Strategy):
 
 
 class Solver:
-
     def __init__(self, game: Countdown):
         if not game.target or not game.numbers:
             raise GameInitisationError(f"Game missing target and/or numbers")
@@ -165,15 +161,14 @@ class Solver:
     def solve(self):
         if not self.solved:
             t1 = time.perf_counter()
-            self.solved, self.solutions, self.iterations = self.strategy.solve(
-            )
+            self.solved, self.solutions, self.iterations = self.strategy.solve()
             self.duration = time.perf_counter() - t1
         if self.solved:
             self.solution_count = len(self.solutions)
         return self
 
     def __str__(self):
-        if (not self.solved):
+        if not self.solved:
             string = "No solutions found"
         else:
             string = "\n".join([solution for solution in self.solutions])
@@ -184,7 +179,6 @@ class Solver:
 
 
 class GameInitisationError(Exception):
-
     def __init__(self, message: str):
         self.message = message
         super().__init__(message)
