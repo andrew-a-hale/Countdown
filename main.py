@@ -5,12 +5,12 @@ import countdown
 
 def main():
     cd = countdown.Countdown()
-    # cd.set_random_numbers().set_random_target()
-    cd.set_numbers([25, 50, 100, 5, 3, 1]).set_target(920)
+    cd.set_random_numbers().set_random_target()
+    # cd.set_numbers([25, 50, 100, 5, 3, 1]).set_target(920)
     # cd.set_numbers([2, 10, 1, 3, 10, 8]).set_target(589)
     print(cd)
     solver = countdown.Solver(cd)
-    solver.set_strategy(countdown.RecursiveSolver).solve()
+    solver.set_strategy(countdown.RecursiveStrategy).solve()
     print(solver)
 
 def main_with_profiling():
@@ -33,7 +33,7 @@ def simulation():
 def monte_carlo(cd):
     game = cd.set_random_target().set_random_numbers()
     solver = countdown.Solver(game)
-    solver.set_strategy(countdown.BruteForceSolver)
+    solver.set_strategy(countdown.BruteForceStrategy)
     solver.solve()
     return solver.solved
 

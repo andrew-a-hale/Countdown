@@ -1,4 +1,4 @@
-import copy
+from abc import ABC
 import itertools
 import operator
 import random
@@ -17,11 +17,11 @@ class Countdown:
         self.target = None
         self.numbers = None
 
-    def set_target(self, target):
+    def set_target(self, target: int):
         self.target = target
         return self
 
-    def set_numbers(self, numbers):
+    def set_numbers(self, numbers: list[int]):
         self.numbers = numbers
         return self
 
@@ -42,51 +42,19 @@ class Countdown:
         return f"Target: {self.target}\nNumbers: {self.numbers}"
 
 
-class Solver:
+class Strategy(ABC):
 
-    def __init__(self, game):
-        if not game.target or not game.numbers:
-            raise GameInitisationError(f"Game missing target and/or numbers")
-        self.game = game
-        self.iterations = 0
-        self.solved = False
-        self.solutions = None
-        self.solution_count = None
-        self.duration = None
-        self.strategy = None
-
-    def set_strategy(self, strategy):
-        self.strategy = strategy(self.game)
-        return self
-
-    def solve(self):
-        if not self.solved:
-            t1 = time.perf_counter()
-            self.solved, self.solutions, self.iterations = self.strategy.solve(
-            )
-            self.duration = time.perf_counter() - t1
-        if self.solved:
-            self.solution_count = len(self.solutions)
-        return self
-
-    def __str__(self):
-        if (not self.solved):
-            string = "No solutions found"
-        else:
-            string = "\n".join([solution for solution in self.solutions])
-            string += f"\nSolution count: {self.solution_count}"
-            string += f"\nSolver duration: {self.duration} seconds"
-        string += f"\nIterations: {self.iterations}"
-        return string
+    def solve(self) -> tuple[bool, list[str], int]:
+        """Solve method for strategy"""
 
 
-class BruteForceSolver:
+class BruteForceStrategy(Strategy):
 
-    def __init__(self, game):
+    def __init__(self, game: Countdown):
         self.game = game
         self.iterations = 0
 
-    def solve(self):
+    def solve(self) -> tuple[bool, list[str], int]:
         sequences = itertools.permutations(self.game.numbers)
         ops_set = itertools.product(operations, repeat=5)
         array = itertools.product(sequences, ops_set)
@@ -122,19 +90,19 @@ class BruteForceSolver:
         return False, None, self.iterations
 
 
-class RecursiveSolver:
+class RecursiveStrategy(Strategy):
 
-    def __init__(self, game):
+    def __init__(self, game: Countdown):
         self.game = game
         self.iterations = 0
 
-    def solve(self):
+    def solve(self) -> tuple[bool, list[str], int]:
         target = self.game.target
         nums = self.game.numbers
 
         solutions = []
 
-        def _solve(nums, ops):
+        def _solve(nums, ops) -> None:
             if len(nums) == 1:
                 return None
             pairs = set(itertools.permutations(nums, 2))
@@ -177,9 +145,47 @@ class RecursiveSolver:
         return False, None, self.iterations
 
 
+class Solver:
+
+    def __init__(self, game: Countdown):
+        if not game.target or not game.numbers:
+            raise GameInitisationError(f"Game missing target and/or numbers")
+        self.game = game
+        self.iterations = 0
+        self.solved = False
+        self.solutions = None
+        self.solution_count = None
+        self.duration = None
+        self.strategy = None
+
+    def set_strategy(self, strategy: Strategy):
+        self.strategy = strategy(self.game)
+        return self
+
+    def solve(self):
+        if not self.solved:
+            t1 = time.perf_counter()
+            self.solved, self.solutions, self.iterations = self.strategy.solve(
+            )
+            self.duration = time.perf_counter() - t1
+        if self.solved:
+            self.solution_count = len(self.solutions)
+        return self
+
+    def __str__(self):
+        if (not self.solved):
+            string = "No solutions found"
+        else:
+            string = "\n".join([solution for solution in self.solutions])
+            string += f"\nSolution count: {self.solution_count}"
+            string += f"\nSolver duration: {self.duration} seconds"
+        string += f"\nIterations: {self.iterations}"
+        return string
+
+
 class GameInitisationError(Exception):
 
-    def __init__(self, message):
+    def __init__(self, message: str):
         self.message = message
         super().__init__(message)
 
@@ -187,14 +193,15 @@ class GameInitisationError(Exception):
 operations = (operator.add, operator.sub, operator.mul, operator.floordiv)
 
 
-def _op_to_str(op) -> str:
-    if op == operator.add:
-        return "+"
-    elif op == operator.sub:
-        return "-"
-    elif op == operator.mul:
-        return "*"
-    elif op == operator.floordiv:
-        return "/"
-    else:
-        return "?"
+def _op_to_str(op: operator) -> str:
+    match op:
+        case operator.add:
+            return "+"
+        case operator.sub:
+            return "-"
+        case operator.mul:
+            return "*"
+        case operator.floordiv:
+            return "/"
+        case _:
+            return "?"

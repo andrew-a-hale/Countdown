@@ -77,7 +77,7 @@ The runtime for the above recursive solver takes between 3 - 10 seconds, dependi
 The brute force solver assumed that the operations must happen in order of left to right  
 This excludes the following solution:
 ```
-50 + 1 * (25 - 5) - 100 = 920
+(50 + 1) * (25 - 5) - 100 = 920
 ```
 The recursive solver has the corresponding solution:
 ```
