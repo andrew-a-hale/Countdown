@@ -41,4 +41,5 @@ def monte_carlo(cd):
 
 
 if __name__ == "__main__":
+    # main_with_profiling()
     main()
