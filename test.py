@@ -16,7 +16,7 @@ class TestCountdown:
     def test_game(self):
         cd = countdown.Countdown()
         cd.set_target(90).set_numbers([25, 50, 100, 5, 3, 1])
-        assert cd.target == 920 and cd.numbers == [25, 50, 100, 5, 3, 1]
+        assert cd.target == 90 and cd.numbers == [25, 50, 100, 5, 3, 1]
 
 
 class TestSolverSpecifiedGame:
